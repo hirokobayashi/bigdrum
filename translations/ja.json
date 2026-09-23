@@ -45,6 +45,7 @@
       "invalid_auth": "メールアドレスまたはパスワードが正しくありません。",
       "no_devices": "このアカウントに登録されているデバイスがありません。",
       "invalid_hex": "鍵またはIVが、長さの正しい16進数ではありません。",
+      "missing_members_key": "MEMBERS_KEY / MEMBERS_IV が未設定です。アプリ APK から抽出した値を入力してください (README 参照)。",
       "unknown": "不明なエラーが発生しました。"
     },
     "abort": {

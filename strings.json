@@ -45,6 +45,7 @@
       "invalid_auth": "Email address or password is incorrect.",
       "no_devices": "No devices are registered to this account.",
       "invalid_hex": "The key or IV is not a valid hexadecimal string of the expected length.",
+      "missing_members_key": "MEMBERS_KEY / MEMBERS_IV is not configured. Enter the values extracted from the app APK (see README).",
       "unknown": "Unexpected error."
     },
     "abort": {
