@@ -41,10 +41,8 @@ GLS_API_URL = (
 )
 APPTYPE = "8"
 
-# メンバーズクラブ API (login2) 用の AES-256 鍵/IV。
-# 洗濯コンシェルジュアプリ (jp.co.hitachi_gls.concierge) の APK から
-# ConstantCo.MEMBERS_ENCKEY / MEMBERS_IV として抽出する。
-# デバイス毎ではなくアプリ全体で共通の定数。
+# アプリ内ハードコード: jp.co.hitachi_gls.concierge.library.constant.ConstantCo
+# (メンバーズクラブ API 専用。デバイスごとに変わるものではない)
 MEMBERS_KEY: bytes = b""
 MEMBERS_IV: bytes = b""
 
