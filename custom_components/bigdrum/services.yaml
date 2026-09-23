@@ -1,0 +1,168 @@
+# コース選択 (start サービス) の選択肢は BD-STX110G の COURSEINF カタログ
+# (version 0100351720220929) から静的に生成したもので、洗濯=11xx/21xx・洗乾=12xx/22xx・
+# 乾燥=13xx・その他(槽洗浄/アイロン等)=14xx/15xx の順。
+# UI の select はこのリストに限られるが、YAML 呼び出しは任意の 4桁 hex
+# course_no を渡せる (カタログに無ければエラー)。カタログ更新時はこのリストも更新する。
+# delay_minutes = 開始までの分数 (10進・1-1440=24時間、コースごとに最低リードタイムあり)。
+# 予約の低レベル指定 marker (4桁 hex) や entry_id は UI に出さず YAML 専用にする。
+start:
+  fields:
+    course_no:
+      required: true
+      selector:
+        select:
+          options:
+            - value: "1101"
+              label: "標準コース (洗濯)"
+            - value: "1102"
+              label: "すすぎ１回コース (洗濯)"
+            - value: "1103"
+              label: "おいそぎコース (洗濯)"
+            - value: "1104"
+              label: "手造りコース (洗濯)"
+            - value: "1105"
+              label: "柔らかコース (洗濯)"
+            - value: "1106"
+              label: "毛布コース (洗濯)"
+            - value: "1107"
+              label: "香りコース (洗濯)"
+            - value: "1108"
+              label: "デリケートコース (洗濯)"
+            - value: "1109"
+              label: "おしゃれ着コース (洗濯)"
+            - value: "1111"
+              label: "部屋干しコース (洗濯)"
+            - value: "1128"
+              label: "パック型液体洗剤コース (洗濯)"
+            - value: "112C"
+              label: "洗剤直ぬりコース (洗濯)"
+            - value: "1130"
+              label: "衣がえコース (洗濯)"
+            - value: "1131"
+              label: "黄ばみ除去コース (洗濯)"
+            - value: "2101"
+              label: "濃縮液体洗剤コース (洗濯)"
+            - value: "2102"
+              label: "ジェルボールコース (洗濯)"
+            - value: "2106"
+              label: "泥汚れコース (洗濯)"
+            - value: "2107"
+              label: "カーテンコース (洗濯)"
+            - value: "2109"
+              label: "ペット衣類コース (洗濯)"
+            - value: "210E"
+              label: "脱水のみコース (洗濯)"
+            - value: "210F"
+              label: "おしゃれ着脱水コース (洗濯)"
+            - value: "2110"
+              label: "わがや流AIコース (洗濯)"
+            - value: "2111"
+              label: "洗えるスーツコース (洗濯)"
+            - value: "2112"
+              label: "温水おしゃれ着コース (洗濯)"
+            - value: "2113"
+              label: "ダウンジャケットコース (洗濯)"
+            - value: "2114"
+              label: "子ども衣類コース (洗濯)"
+            - value: "2117"
+              label: "つけおき2度洗いコース (洗濯)"
+            - value: "1201"
+              label: "標準コース (洗乾)"
+            - value: "1202"
+              label: "すすぎ１回コース (洗乾)"
+            - value: "1204"
+              label: "手造りコース (洗乾)"
+            - value: "1206"
+              label: "毛布コース (洗乾)"
+            - value: "120B"
+              label: "ナイトコース (洗乾)"
+            - value: "120C"
+              label: "除菌洗乾コース (洗乾)"
+            - value: "1228"
+              label: "パック型液体洗剤コース (洗乾)"
+            - value: "122F"
+              label: "快速洗乾コース (洗乾)"
+            - value: "1230"
+              label: "衣がえコース (洗乾)"
+            - value: "1231"
+              label: "黄ばみ除去コース (洗乾)"
+            - value: "2201"
+              label: "濃縮液体洗剤コース (洗乾)"
+            - value: "2202"
+              label: "ジェルボールコース (洗乾)"
+            - value: "2204"
+              label: "速乾部屋干しコース (洗乾)"
+            - value: "2206"
+              label: "泥汚れコース (洗乾)"
+            - value: "2210"
+              label: "わがや流AIコース (洗乾)"
+            - value: "2217"
+              label: "つけおき2度洗いコース (洗乾)"
+            - value: "1301"
+              label: "標準コース (乾燥)"
+            - value: "1306"
+              label: "毛布コース (乾燥)"
+            - value: "130B"
+              label: "ナイトコース (乾燥)"
+            - value: "130D"
+              label: "静止乾燥コース (乾燥)"
+            - value: "130E"
+              label: "スチームアイロン15分コース"
+            - value: "130F"
+              label: "スチームアイロン30分コース"
+            - value: "1329"
+              label: "スチームアイロン5分コース"
+            - value: "132A"
+              label: "スチームアイロン10分コース"
+            - value: "132B"
+              label: "スチームアイロン20分コース"
+            - value: "1421"
+              label: "ダニ対策コース"
+            - value: "1422"
+              label: "槽洗浄11時間コース"
+            - value: "1423"
+              label: "槽洗浄3時間コース"
+            - value: "1424"
+              label: "温水槽洗浄コース"
+            - value: "1426"
+              label: "花粉コース"
+            - value: "1427"
+              label: "槽乾燥コース"
+            - value: "142E"
+              label: "除菌清潔プラスコース"
+            - value: "1591"
+              label: "液体洗剤経路洗浄(4分)"
+            - value: "1592"
+              label: "液体洗剤経路洗浄(9時間)"
+            - value: "1593"
+              label: "柔軟剤経路洗浄(4分)"
+            - value: "1594"
+              label: "柔軟剤経路洗浄(9時間)"
+            - value: "210A"
+              label: "槽洗いコース"
+            - value: "2205"
+              label: "ダニ対策洗濯乾燥コース"
+            - value: "230B"
+              label: "しっかりシワ取りコース"
+    delay_minutes:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 1440
+          step: 5
+          mode: box
+    device_id:
+      required: false
+      selector:
+        device:
+          filter:
+            - integration: bigdrum
+stop:
+  fields:
+    device_id:
+      required: false
+      selector:
+        device:
+          filter:
+            - integration: bigdrum
