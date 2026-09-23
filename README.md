@@ -15,6 +15,12 @@
 - **クラウド経由** (外出先): GLS API を 60秒間隔でポーリング
 - 両方が利用可能なら LAN を優先し、LAN に到達不能なときだけクラウドに自動切替
 
+## スクリーンショット
+
+| センサー | 操作 (コース開始 / 停止) |
+|---|---|
+| ![センサー](docs/sensor.png) | ![操作](docs/action.png) |
+
 ## インストール (HACS)
 
 1. HACS → **Custom repositories** に `https://github.com/nullsnet/bigdrum` を category `Integration` で追加
