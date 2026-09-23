@@ -1,0 +1,116 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Hitachi Big Drum",
+        "data": {
+          "mode": "接続方式"
+        }
+      },
+      "cloud": {
+        "title": "メンバーズクラブ ログイン",
+        "description": "洗濯コンシェルジュアプリと同じアカウントでログインします。",
+        "data": {
+          "email": "メールアドレス",
+          "password": "パスワード"
+        }
+      },
+      "cloud_device": {
+        "title": "デバイスの選択",
+        "description": "このアカウントに {count} 台のデバイスが登録されています。LAN で使う場合は IP を設定してください。",
+        "data": {
+          "dst": "洗濯機",
+          "device_addr": "デバイスのIPアドレス (任意: LAN用)",
+          "broadcast_addr": "ブロードキャストアドレス (任意: 既定 255.255.255.255)"
+        }
+      },
+      "lan": {
+        "title": "LAN 直接接続",
+        "description": "UDP 50000 の鍵を直接入力します (クラウドログインまたはアプリ通信の捕捉で取得)。",
+        "data": {
+          "dst": "製品ID (dst)",
+          "src": "モバイルID (src)",
+          "udp_key": "AES-256 鍵 (16進 64桁)",
+          "udp_iv": "IV (16進 32桁)",
+          "nickname": "ニックネーム (任意)",
+          "device_addr": "デバイスのIPアドレス (任意: 自動検出)",
+          "broadcast_addr": "ブロードキャストアドレス"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "日立クラウドサービスに接続できませんでした。",
+      "invalid_auth": "メールアドレスまたはパスワードが正しくありません。",
+      "no_devices": "このアカウントに登録されているデバイスがありません。",
+      "invalid_hex": "鍵またはIVが、長さの正しい16進数ではありません。",
+      "unknown": "不明なエラーが発生しました。"
+    },
+    "abort": {
+      "already_configured": "このデバイスは既に設定されています。"
+    }
+  },
+  "services": {
+    "start": {
+      "name": "開始",
+      "description": "コースを選んで運転を開始します。そのまま開始する場合は「予約開始 (N 分後)」はチェックしないままで OK です。",
+      "fields": {
+        "course_no": {
+          "name": "コース",
+          "description": "実行するコースを選択してください。操作 (洗濯/洗乾/乾燥) はコースで決まります。"
+        },
+        "delay_minutes": {
+          "name": "予約開始 (N 分後・任意)",
+          "description": "今から N 分後に開始する予約です。1時間後 = 60、3時間後 = 180。最大 1440 (24時間)。一部のコースは開始までの最短時間が必要なため、短すぎるとエラーになります。"
+        },
+        "device_id": {
+          "name": "対象の洗濯機 (任意)",
+          "description": "洗濯機を複数台設定している場合のみ、一覧から選択してください。"
+        },
+        "marker": {
+          "name": "予約マーカー (上級者用・任意)",
+          "description": "開始までの分数の 4桁 16進値 (即時開始 = 0000)。通常は空欄にし「予約開始 (N 分後)」を使ってください。"
+        },
+        "entry_id": {
+          "name": "設定エントリ ID (任意・YAML用)",
+          "description": "device_id への代替 (設定エントリ ID)。洗濯機を複数台設定している場合のみ指定します。"
+        }
+      }
+    },
+    "stop": {
+      "name": "停止",
+      "description": "現在運転中の操作を停止します。",
+      "fields": {
+        "device_id": {
+          "name": "対象の洗濯機 (任意)",
+          "description": "洗濯機を複数台設定している場合のみ、一覧から選択してください。"
+        },
+        "entry_id": {
+          "name": "設定エントリ ID (任意・YAML用)",
+          "description": "device_id への代替 (設定エントリ ID)。洗濯機を複数台設定している場合のみ指定します。"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {"name": "運転状態"},
+      "phase": {"name": "運転フェーズ"},
+      "course": {"name": "選択コース"},
+      "remaining": {"name": "残り時間"},
+      "state_change": {"name": "状態変化時刻"},
+      "ai_info": {"name": "AIお洗濯情報"},
+      "notice": {"name": "お知らせ"},
+      "settings": {"name": "コース設定"},
+      "detergent": {"name": "洗剤 自動投入量"},
+      "softener": {"name": "柔軟剤 自動投入量"},
+      "transport": {"name": "通信経路"}
+    },
+    "binary_sensor": {
+      "running": {"name": "運転中"},
+      "remote_possible": {"name": "リモート操作可能"},
+      "detergent_low": {"name": "洗剤 残量少"},
+      "softener_low": {"name": "柔軟剤 残量少"},
+      "online": {"name": "オンライン"}
+    }
+  }
+}

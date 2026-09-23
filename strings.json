@@ -1,0 +1,115 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Hitachi Big Drum",
+        "data": {
+          "mode": "Connection method"
+        }
+      },
+      "cloud": {
+        "title": "Members Club login",
+        "description": "Log in with the same account as the Washing Concierge app.",
+        "data": {
+          "email": "Email address",
+          "password": "Password"
+        }
+      },
+      "cloud_device": {
+        "title": "Select device",
+        "description": "{count} device(s) registered to this account. Set a device IP if you use LAN.",
+        "data": {
+          "dst": "Washer",
+          "device_addr": "Device IP address (optional, for LAN)",
+          "broadcast_addr": "Broadcast address (optional, default 255.255.255.255)"
+        }
+      },
+      "lan": {
+        "title": "LAN direct connection",
+        "description": "Enter the UDP 50000 keys manually (obtain them via the app capture or a cloud login).",
+        "data": {
+          "dst": "Product ID (dst)",
+          "src": "Mobile ID (src)",
+          "udp_key": "AES-256 key (64 hex chars)",
+          "udp_iv": "IV (32 hex chars)",
+          "nickname": "Nickname (optional)",
+          "device_addr": "Device IP address (optional, will be auto-discovered)",
+          "broadcast_addr": "Broadcast address"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the Hitachi cloud service.",
+      "invalid_auth": "Email address or password is incorrect.",
+      "no_devices": "No devices are registered to this account.",
+      "invalid_hex": "The key or IV is not a valid hexadecimal string of the expected length.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  },
+  "services": {
+    "start": {
+      "name": "Start",
+      "description": "Select a course and start. Leave \"Delayed start\" unchecked to start immediately.",
+      "fields": {
+        "course_no": {
+          "name": "Course",
+          "description": "Course to run. The operation (wash / wash & dry / dry) is part of the course."
+        },
+        "delay_minutes": {
+          "name": "Delayed start (N minutes later, optional)",
+          "description": "Reserve the start for N minutes from now. 1 hour later = 60, 3 hours later = 180. Max 1440 (24h). Some courses need a minimum lead time; too short will error."
+        },
+        "device_id": {
+          "name": "Washer (optional)",
+          "description": "Only when multiple washers are configured; pick one from the list."
+        },
+        "marker": {
+          "name": "Reservation marker (advanced, optional)",
+          "description": "4-digit hex of the minutes until start (0000 = now). Leave empty and use \"Delayed start\" instead."
+        },
+        "entry_id": {
+          "name": "Config entry id (optional, YAML)",
+          "description": "Alternative to device_id (config entry id). Only when multiple washers are configured."
+        }
+      }
+    },
+    "stop": {
+      "name": "Stop",
+      "description": "Stop the current operation.",
+      "fields": {
+        "device_id": {
+          "name": "Washer (optional)",
+          "description": "Only when multiple washers are configured; pick one from the list."
+        },
+        "entry_id": {
+          "name": "Config entry id (optional, YAML)",
+          "description": "Alternative to device_id (config entry id). Only when multiple washers are configured."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {"name": "Status"},
+      "course": {"name": "Selected course"},
+      "remaining": {"name": "Remaining time"},
+      "state_change": {"name": "State change time"},
+      "ai_info": {"name": "AI wash info"},
+      "notice": {"name": "Notice"},
+      "settings": {"name": "Course settings"},
+      "detergent": {"name": "Detergent auto dose"},
+      "softener": {"name": "Softener auto dose"},
+      "transport": {"name": "Transport"}
+    },
+    "binary_sensor": {
+      "running": {"name": "Running"},
+      "remote_possible": {"name": "Remote operation possible"},
+      "detergent_low": {"name": "Detergent low"},
+      "softener_low": {"name": "Softener low"},
+      "online": {"name": "Online"}
+    }
+  }
+}
