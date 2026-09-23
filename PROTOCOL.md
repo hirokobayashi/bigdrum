@@ -455,8 +455,12 @@ CMD=CTRLINS&SRC={app_src}&DST={app_dst}&TIME={TIME_dex(15)}&CTRLC={ctrlc}&CTRLD=
 - URL: `https://kadenfan.hitachi.co.jp/my/api/login2`
 - `APPTYPE=8`。
 - body は AES-256-CBC 平文 `email={id}&password={pass}&app_id=8` を
-  **固定鍵/IV** (`cloud.MEMBERS_KEY` / `cloud.MEMBERS_IV`, APK `ConstantCo` の
-  byte[] と `tests/test_cloud_offline.py` 冒頭で突き合わせてリグレッション検査) で暗号化。
+  **アプリ固定鍵/IV** (`MEMBERS_KEY` / `MEMBERS_IV`) で暗号化。
+  - 洗濯コンシェルジュアプリの APK `ConstantCo` クラスから抽出する
+    (`MEMBERS_ENCKEY` byte[32] / `MEMBERS_IV` byte[16])。
+  - ユーザー設定: HA config flow / CLI `config.json` の `members_key` / `members_iv`。
+  - `cloud.login()` は `members_key` / `members_iv` パラメータを受け取り、
+    未指定時はモジュールレベルの `MEMBERS_KEY` / `MEMBERS_IV` を使用 (未設定ならエラー)。
 - 成功時は k=v 応答: `cspf_id`, `token`, `ckdn_key`, `ckdn_iv`,
   `ckdn_token`, `ckdn_device_key` (UDP 鍵 dst,key,iv を含む)。
   `ckdn_device_key` の末尾バイナリフレームは無視し**先頭 hex** を採用。

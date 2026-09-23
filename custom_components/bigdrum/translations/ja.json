@@ -12,7 +12,9 @@
         "description": "洗濯コンシェルジュアプリと同じアカウントでログインします。",
         "data": {
           "email": "メールアドレス",
-          "password": "パスワード"
+          "password": "パスワード",
+          "members_key": "MEMBERS_KEY (16進 64桁・APKから抽出)",
+          "members_iv": "MEMBERS_IV (16進 32桁・APKから抽出)"
         }
       },
       "cloud_device": {

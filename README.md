@@ -34,6 +34,28 @@ HACS がインストール済みならこちらから 1 クリックで開けま
 
 日立メンバーズクラブの ID/パスワードを入力すると、ログイン後にクラウド鍵・トークン・UDP 鍵まで自動取得されます。自宅外からも利用可能です。
 
+**必要情報:**
+
+- メールアドレス / パスワード: 洗濯コンシェルジュアプリと同じアカウント
+- MEMBERS_KEY (16進 64桁): アプリの APK から抽出
+- MEMBERS_IV (16進 32桁): アプリの APK から抽出
+
+#### MEMBERS_KEY / MEMBERS_IV の取得方法
+
+洗濯コンシェルジュアプリ (jp.co.hitachi_gls.concierge) の APK から以下を抽出します:
+
+1. [jadx](https://github.com/skylot/jadx) または [apktool](https://github.com/iBotPeaches/Apktool) で APK をデコンパイル
+2. `jp/co/hitachi_gls/concierge/library/constant/ConstantCo` クラスを開く
+3. `MEMBERS_ENCKEY` (byte[]) と `MEMBERS_IV` (byte[]) の値を 16進数に変換
+
+例 (jadx 使用):
+```bash
+jadx -d output/ concierge.apk
+# output/jp/co/hitachi_gls/concierge/library/constant/ConstantCo.java を開く
+```
+
+抽出した byte[] を 16進文字列に変換します (例: `[0xB8, 0xE7, ...]` → `"B8E7..."`)。
+
 ### LAN
 
 ペアリング済みの AES 鍵/IV と洗濯機の IP を手入力します。インターネット不要ですが洗濯機と同じネットワークが必須です。

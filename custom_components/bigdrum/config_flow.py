@@ -20,6 +20,8 @@ from .const import (
     CONF_DEVICE_ADDR,
     CONF_DST,
     CONF_EMAIL,
+    CONF_MEMBERS_IV,
+    CONF_MEMBERS_KEY,
     CONF_MODE,
     CONF_NICKNAME,
     CONF_PASSWORD,
@@ -73,32 +75,53 @@ class BigDrumConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._cloud_email = user_input[CONF_EMAIL]
             self._cloud_password = user_input[CONF_PASSWORD]
-            try:
-                self._login_res = await asyncio.to_thread(
-                    cloud.login, self._cloud_email, self._cloud_password
-                )
-                self._devices = await asyncio.to_thread(
-                    cloud.get_devices,
-                    self._login_res["ckdn_key"],
-                    self._login_res["ckdn_iv"],
-                    self._login_res["cspf_id"],
-                    self._login_res.get("ckdn_token", ""),
-                )
-            except cloud.CloudError as err:
-                errors = (
-                    {"base": "invalid_auth"}
-                    if "9E3" in str(err)
-                    else {"base": "cannot_connect"}
-                )
+            members_key_hex = user_input.get(CONF_MEMBERS_KEY, "").strip()
+            members_iv_hex = user_input.get(CONF_MEMBERS_IV, "").strip()
+            valid = len(members_key_hex) == 64 and len(members_iv_hex) == 32
+            if valid:
+                try:
+                    bytes.fromhex(members_key_hex)
+                    bytes.fromhex(members_iv_hex)
+                except ValueError:
+                    valid = False
+            if not valid:
+                errors = {"base": "invalid_hex"}
             else:
-                if not self._devices:
-                    errors = {"base": "no_devices"}
+                try:
+                    self._login_res = await asyncio.to_thread(
+                        cloud.login,
+                        self._cloud_email,
+                        self._cloud_password,
+                        15.0,
+                        bytes.fromhex(members_key_hex),
+                        bytes.fromhex(members_iv_hex),
+                    )
+                    self._devices = await asyncio.to_thread(
+                        cloud.get_devices,
+                        self._login_res["ckdn_key"],
+                        self._login_res["ckdn_iv"],
+                        self._login_res["cspf_id"],
+                        self._login_res.get("ckdn_token", ""),
+                    )
+                except cloud.CloudError as err:
+                    errors = (
+                        {"base": "invalid_auth"}
+                        if "9E3" in str(err)
+                        else {"base": "cannot_connect"}
+                    )
                 else:
-                    return await self.async_step_cloud_device()
+                    self._members_key_hex = members_key_hex
+                    self._members_iv_hex = members_iv_hex
+                    if not self._devices:
+                        errors = {"base": "no_devices"}
+                    else:
+                        return await self.async_step_cloud_device()
         schema = vol.Schema(
             {
                 vol.Required(CONF_EMAIL): str,
                 vol.Required(CONF_PASSWORD): str,
+                vol.Required(CONF_MEMBERS_KEY): str,
+                vol.Required(CONF_MEMBERS_IV): str,
             }
         )
         return self.async_show_form(
@@ -127,6 +150,8 @@ class BigDrumConfigFlow(ConfigFlow, domain=DOMAIN):
                 CONF_MODE: MODE_CLOUD,
                 CONF_EMAIL: self._cloud_email,
                 CONF_PASSWORD: self._cloud_password,
+                CONF_MEMBERS_KEY: getattr(self, "_members_key_hex", ""),
+                CONF_MEMBERS_IV: getattr(self, "_members_iv_hex", ""),
                 CONF_CSPF_ID: self._login_res["cspf_id"],
                 CONF_CKDN_KEY: self._login_res["ckdn_key"],
                 CONF_CKDN_IV: self._login_res["ckdn_iv"],
