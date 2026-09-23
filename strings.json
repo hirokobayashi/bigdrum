@@ -12,7 +12,9 @@
         "description": "Log in with the same account as the Washing Concierge app.",
         "data": {
           "email": "Email address",
-          "password": "Password"
+          "password": "Password",
+          "members_key": "MEMBERS_KEY (64 hex chars, from APK)",
+          "members_iv": "MEMBERS_IV (32 hex chars, from APK)"
         }
       },
       "cloud_device": {

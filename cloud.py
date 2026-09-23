@@ -41,12 +41,12 @@ GLS_API_URL = (
 )
 APPTYPE = "8"
 
-# アプリ内ハードコード: jp.co.hitachi_gls.concierge.library.constant.ConstantCo
-# (メンバーズクラブ API 専用。デバイスごとに変わるものではない)
-MEMBERS_KEY = bytes.fromhex(
-    "B8E76989A67BABB17FD6AD50218C993C2593481C71BDF79F90942F3F9937C267"
-)
-MEMBERS_IV = bytes.fromhex("C2462D1D35421EBF43B8619B93E98AA8")
+# メンバーズクラブ API (login2) 用の AES-256 鍵/IV。
+# 洗濯コンシェルジュアプリ (jp.co.hitachi_gls.concierge) の APK から
+# ConstantCo.MEMBERS_ENCKEY / MEMBERS_IV として抽出する。
+# デバイス毎ではなくアプリ全体で共通の定数。
+MEMBERS_KEY: bytes = b""
+MEMBERS_IV: bytes = b""
 
 
 class CloudError(Exception):
@@ -109,16 +109,30 @@ def _login_error_code(plain: str) -> str | None:
     return None
 
 
-def login(email: str, password: str, timeout: float = 15.0) -> dict[str, str]:
+def login(
+    email: str,
+    password: str,
+    timeout: float = 15.0,
+    members_key: bytes | None = None,
+    members_iv: bytes | None = None,
+) -> dict[str, str]:
     """login2 を呼び、復号した k=v dict を返す (status/cspf_id/ckdn_key/...)。"""
+    key = members_key if members_key is not None else MEMBERS_KEY
+    iv = members_iv if members_iv is not None else MEMBERS_IV
+    if not key or not iv:
+        raise CloudError(
+            "MEMBERS_KEY / MEMBERS_IV が未設定です。"
+            "洗濯コンシェルジュアプリの APK から ConstantCo.MEMBERS_ENCKEY / "
+            "MEMBERS_IV を抽出して設定してください (README 参照)。"
+        )
     msg = f"email={email}&password={password}&app_id={APPTYPE}"
-    body = protocol.encrypt(MEMBERS_KEY, MEMBERS_IV, msg.encode("utf-8"))
+    body = protocol.encrypt(key, iv, msg.encode("utf-8"))
     try:
         raw = _http_post(KADEN_LOGIN_URL, body, timeout)
     except Exception as e:
         raise CloudError(f"login2 通信に失敗しました: {e}") from e
     try:
-        plain = protocol.decrypt(MEMBERS_KEY, MEMBERS_IV, raw).decode("utf-8")
+        plain = protocol.decrypt(key, iv, raw).decode("utf-8")
     except Exception as e:
         raise CloudError(
             "login2 応答の復号に失敗しました (鍵が古いか、応答形式が変化しています)"

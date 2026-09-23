@@ -30,6 +30,8 @@ from .const import (
     CONF_DEVICE_ADDR,
     CONF_DST,
     CONF_EMAIL,
+    CONF_MEMBERS_IV,
+    CONF_MEMBERS_KEY,
     CONF_MODE,
     CONF_NICKNAME,
     CONF_PASSWORD,
@@ -287,7 +289,15 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _relogin(self) -> None:
         """Re-login to refresh ckdn_* and the UDP keys in the config entry."""
         data = self.config_entry.data
-        res = cloud.login(data[CONF_EMAIL], data[CONF_PASSWORD])
+        mk_hex = data.get(CONF_MEMBERS_KEY, "")
+        miv_hex = data.get(CONF_MEMBERS_IV, "")
+        res = cloud.login(
+            data[CONF_EMAIL],
+            data[CONF_PASSWORD],
+            15.0,
+            bytes.fromhex(mk_hex) if mk_hex else None,
+            bytes.fromhex(miv_hex) if miv_hex else None,
+        )
         devices = cloud.get_devices(
             res["ckdn_key"],
             res["ckdn_iv"],
