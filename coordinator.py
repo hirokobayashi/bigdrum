@@ -48,7 +48,7 @@ from .const import (
     SEARCH_RETRY,
     UDP_TIMEOUT,
 )
-from .protocol import now_string_dex, now_string_hex
+from .protocol import no_report_parsed, now_string_dex, now_string_hex
 from .udp import UdpExchangeError, udp_exchange
 
 _LOGGER = logging.getLogger(__name__)
@@ -187,6 +187,7 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     # -------------------------------------------------------------- cloud
 
     def _cloud(self) -> dict[str, Any] | None:
+        """クラウド MOVEINF。成功なら状態 dict、電源OFF・未報告なら noReport dict。"""
         data = self.config_entry.data
         grp, _, parsed = cloud.cloud_moveinf(
             data[CONF_CKDN_KEY],
@@ -196,9 +197,12 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ckdn_token=data.get(CONF_CKDN_TOKEN, ""),
         )
         if grp not in ("0", "3", "4"):
-            return None  # e.g. 2 = power off / no report
+            # e.g. 2 = power off / no report: 本体OFF・未報告の確定信号。
+            # ネットワークエラーではないため、電源OFFメッセージ (statusCode=00)
+            # を状態として返す (status センサーが継続表示する、§6.2)。
+            return no_report_parsed()
         if not parsed:
-            return None
+            return no_report_parsed()
         # 残り時間は GETINF 0005 で補完 (CLI monitor と同じ authoritative 源)。
         try:
             _ggrp, _gdata, gparsed = cloud.cloud_getinf(
@@ -396,15 +400,15 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if due:
                 try:
                     parsed = await asyncio.to_thread(self._cloud_with_relogin)
-                    self._last_cloud_result = "ok" if parsed else "no-data"
-                    if parsed:
-                        source = "cloud"
-                    else:
-                        # クラウドが応答して「データなし」(grp≠0/3/4、例: 2=電源OFF)。
-                        # ネットワークエラー (CloudError) ではなく本体OFFの確定信号なので、
-                        # 電源ON時の stale 旧データを破棄する。破棄しないと同周期内で
-                        # 旧データが stale として復活し、online/各センサーがオフ↔オン往復する。
-                        self._last_parsed = None
+                    if not parsed:
+                        parsed = no_report_parsed()
+                    # 電源OFF・未報告 (grp≠0/3/4、例: 2) もクラウドからの「確定応答」
+                    # (ネットワークエラーではない)。電源OFFメッセージ (statusCode=00)
+                    # を状態として保持し stale にも反映する (継続表示・flapping なし)。
+                    self._last_cloud_result = (
+                        "no-report" if parsed.get("noReport") else "ok"
+                    )
+                    source = "cloud"
                     self._last_cloud = now
                 except cloud.CloudError as err:
                     self._last_cloud_result = f"error: {err}"

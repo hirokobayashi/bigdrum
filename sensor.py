@@ -176,8 +176,14 @@ class BigDrumSensor(CoordinatorEntity, SensorEntity):
         if self.entity_description.key == "transport":
             return self.coordinator.last_source is not None
         data = self.coordinator.data or {}
-        if not (self.coordinator.last_update_success and data.get("parsed")):
+        parsed = data.get("parsed")
+        if not (self.coordinator.last_update_success and parsed):
             return False
+        # 電源OFF・未報告 (クラウド GRP≠0/3/4・例 2): 運転状態の
+        # 「本体の電源が入っていないか…」メッセージ (statusCode=00) のみ表示し、
+        # それ以外の状態データは存在しない (公式アプリと同じ表示)。
+        if parsed.get("noReport"):
+            return self.entity_description.key == "status"
         # 残り時間は 0xFFFF sentinel(None) のときのみ「計測なし」= 非表示。真の 0 はそのまま表示。
         if self.entity_description.key == "remainingTime":
             rem = (data.get("parsed") or {}).get("remainingTime")

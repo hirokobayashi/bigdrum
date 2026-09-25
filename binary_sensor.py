@@ -51,7 +51,8 @@ BINARY_SENSORS: tuple[BinarySensorEntityDescription, ...] = (
         translation_key="softener_low",
         device_class=BinarySensorDeviceClass.PROBLEM,
     ),
-    # 電源ONかつLAN/クラウド経由で状態を正常取得中 (到達可能) を示す
+    # 電源ONかつLAN/クラウド経由で状態を正常取得中 (到達可能) を示す。
+    # 電源OFF・未報告 (クラウド GRP≠0/3/4) は確定の off (常時 available)。
     BinarySensorEntityDescription(
         key="online", translation_key="online"
     ),
@@ -99,11 +100,16 @@ class BigDrumBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
     @property
     def available(self) -> bool:
-        # online は電源/到達可否そのものを示すので常時有効 (無応答 = off)
+        # online は電源/到達可否そのものを示すので常時有効 (電源OFF・無応答 = off)
         if self.entity_description.key == "online":
             return True
         data = self.coordinator.data or {}
-        if not (self.coordinator.last_update_success and data.get("parsed")):
+        parsed = data.get("parsed")
+        if not (self.coordinator.last_update_success and parsed):
+            return False
+        # 電源OFF・未報告 (クラウド GRP≠0/3/4): 状態データなし
+        # (表示するのは status センサーの「本体の電源が入っていないか…」のみ)。
+        if parsed.get("noReport"):
             return False
         # 洗剤/柔軟剤残量は GETINF 0001 に依存 (取得失敗時は判定不能 → 非利用可)。
         if self.entity_description.key in ("detergent_low", "softener_low"):
@@ -114,12 +120,15 @@ class BigDrumBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         key = self.entity_description.key
         if key == "online":
-            # 直近の更新が成功 (電源ONで状態取得に到達) しているか
+            # 直近の更新が成功 (電源ONで状態取得に到達) しているか。
+            # 電源OFF・未報告 (クラウドの確定応答・noReport) は off。
             data = self.coordinator.data
+            parsed = (data or {}).get("parsed")
             return (
                 self.coordinator.last_update_success is True
                 and bool(data)
-                and data.get("parsed") is not None
+                and parsed is not None
+                and not parsed.get("noReport")
             )
         parsed: dict[str, Any] = (self.coordinator.data or {}).get("parsed") or {}
         if key == "running":
