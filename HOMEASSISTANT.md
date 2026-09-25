@@ -30,7 +30,7 @@
 
 | key | 表示名 | 内容 | 備考 |
 |---|---|---|---|
-| `status` | 運転状態 | `statusCode` → 日本語 (PROTOCOL.md §6.4) | |
+| `status` | 運転状態 | `statusCode` → 日本語 (PROTOCOL.md §6.4) | 電源OFF・未報告 (クラウド GRP≠0/3/4・例 2) のときのみ「本体の電源が入っていないか、通信ができない状態です。」表示 (公式アプリと同じ・下記「電源OFF・stale の扱い」) |
 | `phase` | 運転フェーズ | 洗い/すすぎ/脱水/乾燥 | フェーズ未定 (待機中など) は「不明」表示。故障の「切断」にはしない (PROTOCOL.md §6.4b) |
 | `selCourse` | 選択コース | コース名 (日本語) | 下記「選択コースの日本語表示」 |
 | `remainingTime` | 残り時間 | 分 (`device_class=duration`) | 0xFFFF sentinel (None) のみ非表示、真の 0 は表示 |
@@ -70,18 +70,26 @@
 | `remote_possible` | リモート操作可能 | `remoteOperationStatus` != "00" |
 | `detergent_low` | 洗剤残量少 | `jidoTonyuZanryoFlag` bit0 (PROTOCOL.md §7.1) |
 | `softener_low` | 柔軟剤残量少 | `jidoTonyuZanryoFlag` bit1 |
-| `online` | オンライン | 電源ONかつ状態取得に到達中 (常時 available、無応答=off) |
+| `online` | オンライン | 電源ONかつ状態取得に到達中 (常時 available、電源OFF・未報告・無応答=off) |
 
 ### 電源OFF・stale の扱い (flapping 防止)
 
 - 通常は LAN UDP (3s) を優先、不可ならクラウド (55s) にフォールバック (coordinator の自動切替)。
 - 電源OFF時はクラウドが **GRP=2 (無報告・例外なし)** を返す。これはネットワーク障害ではなく
-  本体OFFの**確定信号**なので、直前の **stale 旧データを破棄** する。破棄しないと cloud 未達の
-  サイクルで電源ON時の旧データが stale として復活し、`online` や状態系エンティティがオフ↔オンを
-  ~55s 周期で往復 (flapping) する。
-- 破棄後は復帰 (電源ON) まで `online`=off・状態系は unavailable (安定・flapping なし)。
-  復帰は次回ポーリング (cloud ≤55s / LAN はクールダウン解除後) にて反映。
-- 一方、ネットワーク障害 (CloudError / UDP タイムアウト) のときは stale を維持して耐える。
+  本体OFFの**確定信号**。このとき coordinator は `protocol.no_report_parsed()` (公式アプリと同じ
+  statusCode=00「本体の電源が入っていないか、通信ができない状態です。」) を**状態として保持**し、
+  電源ON時の stale 旧データを**置き換える**。置き換えないと cloud 未達のサイクルで電源ON時の
+  旧データが stale として復活し、`online` や状態系エンティティがオフ↔オンを ~55s 周期で
+  往復 (flapping) する。
+- 電源OFF・未報告 (`noReport`) 中の表示 (公式アプリと同じ・stale サイクルでも維持され flapping なし):
+  - `status` (運転状態): **「本体の電源が入っていないか、通信ができない状態です。」**
+  - `online`: **off** (常時 available)
+  - `phase` / `remainingTime` / `settings` / `detergent` / `softener` / `selCourse` /
+    `running` / `remote_possible`: **unavailable** (状態データが存在しないため)
+  - `transport`: 最後に取得成功した経路を保持 (この場合は Cloud)
+- 復帰 (電源ON) は次回ポーリング (cloud ≤55s / LAN はクールダウン解除後) にて反映。
+- 一方、ネットワーク障害 (CloudError / UDP タイムアウト) のときは stale を維持して耐える
+  (電源OFFの確定信号ではないため、`noReport` にはしない)。
 
 ### LAN 発見 (device_addr 未特定時) と失敗クールダウンの分離
 

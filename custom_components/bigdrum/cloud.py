@@ -273,6 +273,11 @@ def cloud_moveinf(
 
     (GRP, DATA, パース済み dict) を返す。LAN 不要 (家電の Wi-Fi が外出先でも
     インターネットにつながっていれば動作)。
+
+    ``GRP`` は {0,3,4} のみ成功 (§3.3)。それ以外 (例 2) は本体電源OFF / 未報告の
+    **確定信号** (ネットワークエラーではない)。この場合 ``parsed`` は空 dict なので、
+    呼び出し側は ``protocol.no_report_parsed()`` (電源OFFメッセージ) に差し替えて
+    表示する (§6.2)。
     """
     res = gls_call(
         ckdn_key,

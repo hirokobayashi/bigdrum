@@ -135,6 +135,21 @@ REMAIN_REASON_BITS = [
 ]
 
 
+def no_report_parsed() -> dict[str, Any]:
+    """本体電源OFF / 未報告 (クラウド GRP∉{0,3,4}・例 2) の状態 dict (§3.3 / §6.2)。
+
+    公式アプリが状態を取得できないときに表示するメッセージ (statusCode=00) と
+    同一の ``status`` を返す。呼び出し側はこれを「状態データ」として保持し、
+    運転状態 (status) だけを表示する (PROTOCOL.md §6.2)。
+    ``noReport=True`` がフラグで、状態データなし (他フィールドは全て欠落)。
+    """
+    return {
+        "statusCode": "00",
+        "status": STATUS_MAP["00"],
+        "noReport": True,
+    }
+
+
 def _parse_remaining_time(v: str) -> int | None:
     """残り時間 (16進) をパース。0xFFFF は「時間なし」の sentinel として None。"""
     n = int(v, 16)
