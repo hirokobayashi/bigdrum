@@ -366,7 +366,6 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         source: str | None = None
         failures: list[str] = []
         now = datetime.now(timezone.utc)
-        self._last_lan_result = None
         self._last_cloud_result = None
 
         if data.get(CONF_UDP_KEY):
@@ -390,10 +389,10 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         self._last_lan_result = f"error: {err}"
                         failures.append(f"lan: {err}")
                         _LOGGER.debug("LAN update failed: %s", err)
-            else:
-                self._last_lan_result = "cooldown"
-        else:
-            self._last_lan_result = "no-key"
+            # クールダウン中は _last_lan_result を更新しない (最後の試行結果を
+            # 保持)。クールダウン中かどうかは health().lan_cooldown_active が
+            # 担う。cycle ごとに "cooldown" を書くと transport センサーの属性が
+            # 60 秒周期で反転し、電源 OFF 時の recorder 書き込みが高頻度化する。
 
         if parsed is None and mode == MODE_CLOUD:
             due = self._last_cloud is None or now - self._last_cloud >= CLOUD_POLL_EVERY
@@ -415,11 +414,11 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     failures.append(f"cloud: {err}")
             else:
                 parsed = self._last_parsed  # stale but known
-                if parsed is not None:
-                    source = "stale"
 
-        # 健全性の記録 (電源/到達/取得成否の判定に供する)
-        if parsed is not None and source in ("lan", "cloud"):
+        # 健全性の記録 (電源/到達/取得成否の判定に供する)。
+        # 内部判定は「今回の取得が新鮮か」で行う (payload source とは分離)。
+        is_fresh = parsed is not None and source in ("lan", "cloud")
+        if is_fresh:
             self._last_parsed = parsed
             self._last_fresh_at = now
             self._last_source = source
@@ -440,7 +439,7 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # スロットル付きで取得。LAN 直結でもクラウド認証情報があれば取得する (スレッドで実行し
         # イベントループをブロックしない)。
         if (
-            source in ("lan", "cloud")
+            is_fresh
             and data.get(CONF_CKDN_KEY)
             and self._fw_refresh_due(now)
         ):
@@ -452,7 +451,12 @@ class BigDrumCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ):
                 raise UpdateFailed("; ".join(failures))
 
-        return {"parsed": parsed, "source": source, "ts": now}
+        # payload の source は「最後に成功した経路」(last_source) を保持する。
+        # stale サイクルで "stale" を返すと全センサーの属性が 55 秒ごとに反転し、
+        # 電源 OFF 時に recorder への書き込みが高頻度化する (state_changed は
+        # 属性差分だけで発行されるため)。stale 状態の可視性は health().stale /
+        # binary_sensor.online が担う。fresh 取得が一度も無い場合は None のまま。
+        return {"parsed": parsed, "source": self._last_source, "ts": now}
 
     def health(self) -> dict[str, Any]:
         """接続・取得の健全性。diagnostics へ出力する (秘密情報は含まない)。"""
