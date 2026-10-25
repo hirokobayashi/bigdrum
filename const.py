@@ -25,7 +25,10 @@ MODE_CLOUD = "cloud"
 MODE_LAN = "lan"
 
 MANUFACTURER = "Hitachi"
-MODEL = "BD-STX110G"
+# 実機は BD-STX120H (モデルコード 01003C14 = dst[:8] で確認済み)。
+# 上流既定の BD-STX110G (01003517) は作者の機種。表示のみの修正で、
+# 動作 (COURSEINF の MODEL) は dst[:8] を使うため影響しない。
+MODEL = "BD-STX120H"
 
 DEFAULT_BROADCAST_ADDR = "255.255.255.255"
 UDP_TIMEOUT = 2.5
