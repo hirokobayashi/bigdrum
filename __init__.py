@@ -132,7 +132,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
     )
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     coordinator = BigDrumCoordinator(hass, entry)
     try:
         await coordinator.async_config_entry_first_refresh()
@@ -148,7 +148,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         eager_start=True,
     )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
